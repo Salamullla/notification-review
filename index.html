@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>مراجع الإشعارات</title>
+<style>
+  :root{
+    --bg:#f6f7f9; --card:#fff; --text:#15171a; --muted:#6b7280; --line:#e5e7eb;
+    --primary:#176b4a; --primary2:#0f5137; --ok:#15803d; --warn:#b45309; --bad:#b91c1c;
+    --soft:#eef7f2;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:Tahoma,Arial,sans-serif;background:var(--bg);color:var(--text)}
+  .app{min-height:100vh;display:grid;grid-template-columns:260px 1fr}
+  aside{background:#111827;color:#fff;padding:24px 18px}
+  .brand{font-size:22px;font-weight:700;margin-bottom:8px}
+  .sub{font-size:13px;color:#cbd5e1;line-height:1.7;margin-bottom:28px}
+  nav a{display:block;color:#e5e7eb;text-decoration:none;padding:12px 14px;border-radius:10px;margin:6px 0}
+  nav a.active,nav a:hover{background:#1f2937}
+  main{padding:28px}
+  .top{display:flex;justify-content:space-between;gap:16px;align-items:center;margin-bottom:22px}
+  h1{font-size:26px;margin:0}
+  .hint{color:var(--muted);font-size:14px;margin-top:6px}
+  .badge{background:var(--soft);color:var(--primary);padding:9px 12px;border-radius:999px;font-size:13px;font-weight:700}
+  .grid{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(320px,.8fr);gap:20px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px;box-shadow:0 2px 8px rgba(0,0,0,.03)}
+  .card h2{font-size:18px;margin:0 0 16px}
+  label{display:block;font-weight:700;font-size:14px;margin:14px 0 7px}
+  select,input,textarea{width:100%;border:1px solid #d1d5db;border-radius:10px;padding:12px 13px;font:inherit;background:#fff}
+  textarea{min-height:190px;resize:vertical;line-height:1.9}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .counter{font-size:12px;color:var(--muted);margin-top:6px;text-align:left}
+  button{border:0;border-radius:10px;padding:12px 16px;font:inherit;font-weight:700;cursor:pointer}
+  .primary{background:var(--primary);color:#fff;width:100%;margin-top:16px}
+  .primary:hover{background:var(--primary2)}
+  .ghost{background:#f3f4f6;color:#111827}
+  .score{display:flex;align-items:center;gap:16px;padding:14px;border-radius:14px;background:#f9fafb;margin-bottom:15px}
+  .circle{width:72px;height:72px;border-radius:50%;display:grid;place-items:center;font-size:20px;font-weight:800;background:#e5e7eb}
+  .score strong{display:block;font-size:18px}
+  .checks{display:flex;flex-direction:column;gap:10px}
+  .check{border:1px solid var(--line);border-radius:12px;padding:12px 13px}
+  .check.ok{border-right:5px solid var(--ok)}
+  .check.warn{border-right:5px solid var(--warn)}
+  .check.bad{border-right:5px solid var(--bad)}
+  .check .t{font-weight:700;font-size:14px}
+  .check .d{font-size:13px;color:var(--muted);margin-top:5px;line-height:1.6}
+  .preview{margin-top:20px}
+  .notification{border:1px solid #dbe3df;border-radius:14px;overflow:hidden;background:#fff}
+  .notification .head{background:#168257;color:#fff;padding:13px 16px;font-weight:700}
+  .notification .body{padding:16px;white-space:pre-wrap;line-height:1.9}
+  .empty{color:var(--muted);font-size:14px;padding:8px 0}
+  .rules{margin-top:20px}
+  .rules li{margin:8px 0;line-height:1.7;color:#374151}
+  .small{font-size:12px;color:var(--muted)}
+  @media (max-width:900px){.app{grid-template-columns:1fr}aside{display:none}.grid{grid-template-columns:1fr}main{padding:16px}}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside>
+    <div class="brand">مراجع الإشعارات</div>
+    <div class="sub">أداة لمراجعة الإشعارات قبل اعتمادها وفق إرشادات الكتابة المعتمدة.</div>
+    <nav>
+      <a class="active" href="#">مراجعة إشعار</a>
+      <a href="#rules">الإرشادات</a>
+      <a href="#preview">المعاينة</a>
+    </nav>
+  </aside>
+
+  <main>
+    <div class="top">
+      <div>
+        <h1>مراجعة إشعار</h1>
+        <div class="hint">أدخل الإشعار، ثم اضغط «مراجعة الإشعار» لعرض الملاحظات دون تعديل النص تلقائياً.</div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end"><div class="badge">متوافق مع الإرشادات المرفقة</div><div class="badge" id="supabaseStatus">جاري الاتصال بـ Supabase...</div></div>
+    </div>
+
+    <div class="grid">
+      <section class="card">
+        <h2>بيانات الإشعار</h2>
+        <div class="row">
+          <div>
+            <label>القناة</label>
+            <select id="channel">
+              <option>البريد الإلكتروني</option>
+              <option>رسالة نصية SMS</option>
+              <option>إشعار Push</option>
+            </select>
+          </div>
+          <div>
+            <label>لغة الإشعار</label>
+            <select id="lang">
+              <option value="ar">العربية</option>
+              <option value="en">الإنجليزية</option>
+            </select>
+          </div>
+        </div>
+
+        <div id="titleField">
+          <label>العنوان</label>
+          <input id="title" placeholder="مثال: طلب حذف المشروع رقم #ProjectNumber" />
+          <div class="counter"><span id="titleCount">0</span> حرف</div>
+        </div>
+
+        <label>نص الإشعار</label>
+        <textarea id="body" placeholder="اكتب نص الإشعار هنا..."></textarea>
+        <div class="counter"><span id="bodyCount">0</span> حرف</div>
+
+        <button class="primary" onclick="reviewNotification()">مراجعة الإشعار</button>
+        <button class="ghost" style="width:100%;margin-top:10px" onclick="improveNotification()">تحسين الصياغة وفق الإرشادات</button>
+      </section>
+
+      <section class="card">
+        <h2>نتيجة المراجعة</h2>
+        <div class="score">
+          <div class="circle" id="scoreCircle">—</div>
+          <div>
+            <strong id="scoreTitle">لم تتم المراجعة بعد</strong>
+            <div class="small" id="scoreDesc">ستظهر هنا نسبة الالتزام والملاحظات.</div>
+          </div>
+        </div>
+        <div id="checks" class="checks">
+          <div class="empty">لا توجد نتائج حتى الآن.</div>
+        </div>
+      </section>
+    </div>
+
+
+    <section class="card preview" id="improvement">
+      <h2>الصياغة المحسّنة</h2>
+      <div class="hint" style="margin-bottom:12px">يُعاد تحسين النص مع الحفاظ على المعنى، وتقليل الحشو، وإبراز المعلومة الأهم، ومراعاة بنية الإشعار والإرشادات المرفقة.</div>
+      <div class="notification">
+        <div class="head" id="improvedTitle">سيظهر العنوان المحسّن هنا</div>
+        <div class="body" id="improvedBody">سيظهر النص المحسّن هنا بعد الضغط على «تحسين الصياغة وفق الإرشادات».</div>
+      </div>
+      <div style="display:flex;gap:10px;margin-top:12px;flex-wrap:wrap">
+        <button class="ghost" onclick="applyImprovement()">استخدام الصياغة المحسّنة</button>
+        <button class="ghost" onclick="copyImprovement()">نسخ الصياغة المحسّنة</button>
+      </div>
+    </section>
+
+    <section class="card preview" id="preview">
+      <h2>المعاينة</h2>
+      <div class="notification">
+        <div class="head" id="previewTitle">عنوان الإشعار</div>
+        <div class="body" id="previewBody">سيظهر نص الإشعار هنا.</div>
+      </div>
+    </section>
+
+    <section class="card rules" id="rules">
+      <h2>المعايير المعتمدة</h2>
+      <div class="hint" style="margin-bottom:12px">
+        يتم تحميل هذه المعايير مباشرة من جدول <strong>جدول المعايير</strong> في Supabase.
+      </div>
+      <div id="supabaseRules" class="empty">جاري تحميل المعايير...</div>
+    </section>
+  </main>
+</div>
+
+<script>
+const title = document.getElementById('title');
+const body = document.getElementById('body');
+const channel = document.getElementById('channel');
+
+function updatePreview(){
+  document.getElementById('titleCount').textContent = title.value.length;
+  document.getElementById('bodyCount').textContent = body.value.length;
+  document.getElementById('previewTitle').textContent = title.value || 'عنوان الإشعار';
+  document.getElementById('previewBody').textContent = body.value || 'سيظهر نص الإشعار هنا.';
+}
+title.addEventListener('input', updatePreview);
+body.addEventListener('input', updatePreview);
+
+function updateChannelFields(){
+  const isSMS = channel.value === 'رسالة نصية SMS';
+  document.getElementById('titleField').style.display = isSMS ? 'none' : 'block';
+  document.getElementById('previewTitle').style.display = isSMS ? 'none' : 'block';
+
+  if(isSMS){
+    title.value = '';
+    document.getElementById('titleCount').textContent = '0';
+  }
+  updatePreview();
+}
+channel.addEventListener('change', updateChannelFields);
+
+function addCheck(list, level, t, d){ list.push({level,t,d}); }
+
+function reviewNotification(){
+  const t = title.value.trim();
+  const b = body.value.trim();
+  const ch = channel.value;
+  const checks = [];
+
+  if(ch !== 'رسالة نصية SMS'){
+    if(!t) addCheck(checks,'bad','العنوان مفقود','أضف عنواناً مختصراً يدخل مباشرة في صلب الموضوع.');
+    else if(t.length > 80) addCheck(checks,'warn','العنوان طويل','اختصر العنوان قدر المستطاع.');
+    else addCheck(checks,'ok','العنوان مختصر','طول العنوان مناسب مبدئياً.');
+
+    if(/إشعار\s+(ب|بـ|عن)/.test(t)) addCheck(checks,'warn','العنوان عام','تجنب «إشعار بـ...» وابدأ بالموضوع نفسه.');
+    if(!/#\w+/.test(t)) addCheck(checks,'warn','لا توجد قيمة مرجعية في العنوان','عند وجود رقم طلب أو مشروع، يفضّل إظهاره في العنوان.');
+  }
+
+  if(!b) addCheck(checks,'bad','نص الإشعار مفقود','أدخل نص الإشعار للمراجعة.');
+  else {
+    if(b.length > 500) addCheck(checks,'warn','النص طويل','اختصر المحتوى وركّز على الخبر والتوجيه المطلوب.');
+    else addCheck(checks,'ok','طول النص مناسب','النص ضمن نطاق مختصر مبدئياً.');
+
+    if(/نود\s+(إفادتكم|إبلاغكم)|نود أن|نفيدكم بأن/.test(b))
+      addCheck(checks,'warn','صياغة تمهيدية زائدة','ابدأ مباشرة بالمعلومة المهمة بدلاً من «نود إفادتكم بأن».');
+
+    const tamCount=(b.match(/\bتم\b/g)||[]).length;
+    if(tamCount>1) addCheck(checks,'warn','تكرار كلمة «تم»',`ظهرت كلمة «تم» ${tamCount} مرات. استخدمها فقط عند الحاجة.`);
+
+    if(/اضغط\s+هنا|انقر\s+هنا/.test(b))
+      addCheck(checks,'bad','صياغة رابط غير مفضلة','اجعل الكلمة المفتاحية نفسها قابلة للنقر بدلاً من «اضغط هنا».');
+
+    const badParams=[...b.matchAll(/#([^\s.,،؛:!?]+)/g)].filter(m=>/\s/.test(m[1]));
+    if(badParams.length) addCheck(checks,'bad','تنسيق قيمة متغيرة غير صحيح','القيمة المتغيرة يجب أن تبدأ بـ # ويكون اسمها بالإنجليزية ودون مسافات.');
+
+    const arabicParam=[...b.matchAll(/#([^\s.,،؛:!?]+)/g)].find(m=>/[\u0600-\u06FF]/.test(m[1]));
+    if(arabicParam) addCheck(checks,'bad','اسم المتغير بالعربية','اكتب اسم القيمة المتغيرة باللغة الإنجليزية حتى في النسخة العربية.');
+
+    if(/أهلاً|عزيزنا المستخدم|مع التحية والتقدير/.test(b))
+      addCheck(checks,'ok','العبارة الترحيبية موجودة','توجد بداية مناسبة لمخاطبة المستخدم.');
+    else if(ch==='البريد الإلكتروني')
+      addCheck(checks,'warn','العبارة الترحيبية غير واضحة','في البريد الإلكتروني، استخدم عبارة ترحيبية مناسبة بحسب نوع المخاطب.');
+
+    if(ch==='البريد الإلكتروني'){
+      if(/مع أطيب التحيات[\s\S]*اعتماد/.test(b))
+        addCheck(checks,'ok','الخاتمة مناسبة','الخاتمة تتوافق مع القالب المرفق.');
+      else
+        addCheck(checks,'warn','الخاتمة تحتاج مراجعة','يفضّل استخدام «مع أطيب التحيات،» ثم «اعتماد» في القالب المناسب.');
+    }
+
+    if(b.split(/\n+/).some(p=>p.length>220))
+      addCheck(checks,'warn','فقرة طويلة','قسّم المحتوى إلى قطع صغيرة ليسهل على المستخدم مسحه بصرياً.');
+    else addCheck(checks,'ok','تقسيم النص جيد','لا توجد فقرة طويلة بشكل ملحوظ.');
+  }
+
+  let score=100;
+  checks.forEach(c=>{ if(c.level==='bad') score-=18; if(c.level==='warn') score-=8; });
+  score=Math.max(0,Math.min(100,score));
+
+  const circle=document.getElementById('scoreCircle');
+  circle.textContent=score+'%';
+  document.getElementById('scoreTitle').textContent = score>=85?'ملتزم بدرجة عالية':score>=65?'يحتاج بعض التحسينات':'يحتاج مراجعة';
+  document.getElementById('scoreDesc').textContent = `تم فحص ${checks.length} نقطة وفق الإرشادات الأساسية.`;
+
+  document.getElementById('checks').innerHTML = checks.map(c=>`
+    <div class="check ${c.level}">
+      <div class="t">${c.level==='ok'?'✓ ':c.level==='warn'?'! ':'× '}${c.t}</div>
+      <div class="d">${c.d}</div>
+    </div>`).join('');
+}
+
+
+function improveTitleText(t){
+  let x=t.trim();
+  x=x.replace(/^إشعار\s+(ب|بـ|عن)\s*/,'');
+  x=x.replace(/\s+/g,' ');
+  if(x.length>80) x=x.slice(0,77).trim()+'…';
+  return x;
+}
+
+function improveBodyText(b, ch){
+  let x=b.trim();
+
+  x=x.replace(/^(نود\s+(إفادتكم|إبلاغكم)\s+بأن|نفيدكم\s+بأن|نود\s+أن\s+نحيطكم\s+علمًا\s+بأن)\s*/,'');
+  x=x.replace(/\bتم\s+([^\n.،]+)/g,'$1');
+  x=x.replace(/اضغط\s+هنا\s+ل(?:ل|ـ)?/g,'انتقل إلى ');
+  x=x.replace(/انقر\s+هنا\s+ل(?:ل|ـ)?/g,'انتقل إلى ');
+  x=x.replace(/[ \t]+/g,' ');
+  x=x.replace(/\n{3,}/g,'\n\n');
+  x=x.replace(/نأمل منكم/g,'نأمل منك');
+  x=x.replace(/يرجى منكم/g,'يرجى منك');
+  x=x.replace(/يمكنكم/g,'يمكنك');
+  x=x.replace(/عليكم/g,'عليك');
+
+  if(ch==='البريد الإلكتروني'){
+    const hasGreeting=/^(أهلاً|عزيزنا المستخدم|مع التحية والتقدير|Dear )/.test(x);
+    if(!hasGreeting) x='عزيزنا المستخدم،\n\n'+x;
+
+    const hasClosing=/مع أطيب التحيات[\s\S]*اعتماد/.test(x);
+    if(!hasClosing) x=x.replace(/\s+$/,'')+'\n\nمع أطيب التحيات،\nاعتماد';
+  }
+
+  return x.trim();
+}
+
+function improveNotification(){
+  const t=title.value.trim();
+  const b=body.value.trim();
+  const ch=channel.value;
+
+  const isSMS = ch === 'رسالة نصية SMS';
+  const it=isSMS ? '' : improveTitleText(t || 'عنوان الإشعار');
+  const ib=improveBodyText(b || '', ch);
+
+  document.getElementById('improvedTitle').style.display = isSMS ? 'none' : 'block';
+  document.getElementById('improvedTitle').textContent=it || 'عنوان الإشعار';
+  document.getElementById('improvedBody').textContent=ib || 'أدخل نص الإشعار أولاً.';
+  document.getElementById('improvement').scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+function applyImprovement(){
+  const it=document.getElementById('improvedTitle').textContent;
+  const ib=document.getElementById('improvedBody').textContent;
+  if(it && !it.startsWith('سيظهر')) title.value=it;
+  if(ib && !ib.startsWith('سيظهر') && ib!=='أدخل نص الإشعار أولاً.') body.value=ib;
+  updatePreview();
+  reviewNotification();
+}
+
+async function copyImprovement(){
+  const it=document.getElementById('improvedTitle').textContent;
+  const ib=document.getElementById('improvedBody').textContent;
+  const txt=it+'\n\n'+ib;
+  try{
+    await navigator.clipboard.writeText(txt);
+    alert('تم نسخ الصياغة المحسّنة');
+  }catch(e){
+    alert('تعذر النسخ تلقائياً. حدّد النص وانسخه يدوياً.');
+  }
+}
+
+const SUPABASE_URL = 'https://liccqgdaqlrlyikhayqb.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_JSju1o_YXuJJ7AkuCBeYbQ_5ebRizn3';
+
+async function loadGuidelinesFromSupabase(){
+  const status = document.getElementById('supabaseStatus');
+  const container = document.getElementById('supabaseRules');
+
+  try{
+    const table = encodeURIComponent('جدول المعايير');
+    const url = `${SUPABASE_URL}/rest/v1/${table}?select=id,%D8%A7%D9%84%D8%AA%D8%B5%D9%86%D9%8A%D9%81,%D8%B1%D9%82%D9%85%20%D8%A7%D9%84%D9%85%D8%B9%D9%8A%D8%A7%D8%B1,%D8%A7%D9%84%D9%85%D8%B9%D9%8A%D8%A7%D8%B1&order=%D8%A7%D9%84%D8%AA%D8%B5%D9%86%D9%8A%D9%81.asc,%D8%B1%D9%82%D9%85%20%D8%A7%D9%84%D9%85%D8%B9%D9%8A%D8%A7%D8%B1.asc`;
+
+    const res = await fetch(url, {
+      headers: {
+        'apikey': SUPABASE_KEY,
+        'Authorization': `Bearer ${SUPABASE_KEY}`
+      }
+    });
+
+    if(!res.ok) throw new Error(`HTTP ${res.status}`);
+    const rows = await res.json();
+
+    window.notificationGuidelines = rows;
+
+    const grouped = {};
+    rows.forEach(r=>{
+      const cat = r['التصنيف'] || 'غير مصنف';
+      if(!grouped[cat]) grouped[cat] = [];
+      grouped[cat].push(r);
+    });
+
+    container.className = '';
+    container.innerHTML = Object.entries(grouped).map(([cat, items])=>`
+      <div style="margin:16px 0">
+        <div style="font-weight:800;margin-bottom:8px">${cat}</div>
+        <ol style="margin:0;padding-right:22px">
+          ${items.map(r=>`<li style="margin:7px 0;line-height:1.8">${r['المعيار']}</li>`).join('')}
+        </ol>
+      </div>
+    `).join('');
+
+    status.textContent = `متصل بـ Supabase · ${rows.length} معيار`;
+  }catch(err){
+    console.error(err);
+    status.textContent = 'تعذر الاتصال بـ Supabase';
+    container.className = 'empty';
+    container.textContent = 'تعذر تحميل المعايير من Supabase. تأكد من الاتصال وسياسة القراءة في قاعدة البيانات.';
+  }
+}
+
+updatePreview();
+updateChannelFields();
+loadGuidelinesFromSupabase();
+</script>
+</body>
+</html>
